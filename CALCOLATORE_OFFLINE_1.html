@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Finanziamento | GECO SRL</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .logo { font-size: 3em; margin-bottom: 10px; }
+        .content { padding: 40px; }
+        .section {
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #eee;
+        }
+        .section:last-child { border-bottom: none; }
+        .section h2 {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        @media (max-width: 768px) {
+            .input-group { grid-template-columns: 1fr; }
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 200px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .result-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .result-card.highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-left-color: white;
+        }
+        .result-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+        .result-card.highlight .result-label { color: rgba(255, 255, 255, 0.8); }
+        .result-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+        .result-card.highlight .result-value { color: white; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        tr:hover { background: #fafafa; }
+        .amortization-table {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        .hidden { display: none !important; }
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            color: #1565c0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        /* CSS PER STAMPA */
+        @media print {
+            body { 
+                background: white; 
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                border-radius: 0;
+            }
+            .header {
+                page-break-after: avoid;
+            }
+            .content {
+                padding: 0;
+            }
+            .section {
+                page-break-inside: avoid;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                border-bottom: 1px solid #ddd;
+            }
+            .input-group, .button-group {
+                display: none;
+            }
+            .printHidden {
+                display: none !important;
+            }
+            .printOnly {
+                display: block !important;
+            }
+            h2 {
+                color: #667eea;
+                page-break-after: avoid;
+            }
+            table {
+                page-break-inside: avoid;
+                border: 1px solid #999;
+            }
+            th {
+                background: #667eea !important;
+                color: white !important;
+                print-color-adjust: exact;
+            }
+            td {
+                border: 1px solid #ddd;
+            }
+        }
+
+        .print-section { display: none; }
+        .print-section.active { display: block; }
+        .footer-note { font-size: 0.85em; color: #999; margin-top: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">💰</div>
+            <h1>Calcolatore Finanziamento</h1>
+            <p>Efficienza Energetica | Prodotti Green | GECO SRL</p>
+        </div>
+        <div class="content">
+            <!-- SEZIONE CALCOLO -->
+            <div class="section">
+                <h2>📊 Calcolo Veloce</h2>
+                <div class="input-group">
+                    <div>
+                        <label for="importo">Importo Finanziamento (€)</label>
+                        <input type="number" id="importo" value="10000" min="2000" max="35000" step="50">
+                    </div>
+                    <div>
+                        <label for="durata">Durata (mesi)</label>
+                        <select id="durata">
+                            <option value="12">12 mesi</option>
+                            <option value="18">18 mesi</option>
+                            <option value="24" selected>24 mesi</option>
+                            <option value="30">30 mesi</option>
+                            <option value="36">36 mesi</option>
+                            <option value="42">42 mesi</option>
+                            <option value="48">48 mesi</option>
+                            <option value="54">54 mesi</option>
+                            <option value="60">60 mesi</option>
+                            <option value="66">66 mesi</option>
+                            <option value="72">72 mesi</option>
+                            <option value="78">78 mesi</option>
+                            <option value="84">84 mesi</option>
+                            <option value="90">90 mesi</option>
+                            <option value="96">96 mesi</option>
+                            <option value="102">102 mesi</option>
+                            <option value="108">108 mesi</option>
+                            <option value="114">114 mesi</option>
+                            <option value="120">120 mesi</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn-primary" onclick="window.calcolaFinanziamento()">Calcola</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE OFFERTA -->
+            <div class="section printHidden">
+                <h2>📝 Dati Offerta (Opzionale)</h2>
+                <p style="color: #666; font-size: 0.95em; margin-bottom: 20px;">Compila questi campi per generare un'offerta professionale stampabile</p>
+                <div class="input-group">
+                    <div>
+                        <label for="cliente">Nome Cliente</label>
+                        <input type="text" id="cliente" placeholder="Es: Giovanni Rossi">
+                    </div>
+                    <div>
+                        <label for="fornitore">Nome Fornitore / Azienda</label>
+                        <input type="text" id="fornitore" value="GECO SRL" placeholder="Es: GECO SRL">
+                    </div>
+                    <div>
+                        <label for="dataOfferta">Data Offerta</label>
+                        <input type="date" id="dataOfferta">
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label for="descrizioneBene">Descrizione del Bene / Prodotto</label>
+                    <textarea id="descrizioneBene" placeholder="Es: Impianto fotovoltaico 6 kWp con batteria di accumulo"></textarea>
+                </div>
+            </div>
+
+            <!-- RISULTATI -->
+            <div class="section hidden" id="resultsSection">
+                <h2>📈 Risultati Calcolo</h2>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Importo Finanziato</div>
+                        <div class="result-value">€<span id="resultImporto">10.000</span></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Durata</div>
+                        <div class="result-value"><span id="resultDurata">24</span> mesi</div>
+                    </div>
+                    <div class="result-card highlight">
+                        <div class="result-label">Rata Mensile</div>
+                        <div class="result-value">€<span id="resultRata">428.32</span></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Tasso TAN</div>
+                        <div class="result-value"><span id="resultTasso">9.15</span>%</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Tasso TAEG</div>
+                        <div class="result-value"><span id="resultTAEG">12.35</span>%</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Totale Interessi</div>
+                        <div class="result-value">€<span id="resultInteressi">280.32</span></div>
+                    </div>
+                    <div class="result-card highlight">
+                        <div class="result-label">Importo Totale Dovuto</div>
+                        <div class="result-value">€<span id="resultTotale">10.280</span></div>
+                    </div>
+                </div>
+                <div class="button-group printHidden">
+                    <button class="btn-primary" onclick="window.stampaOfferta()">🖨️ Stampa Offerta</button>
+                    <button class="btn-secondary" onclick="window.mostraAmmortamento()">📋 Piano Ammortamento</button>
+                </div>
+            </div>
+
+            <!-- INTESTAZIONE OFFERTA (STAMPA) -->
+            <div class="section printOnly" id="printHeader" style="display: none; page-break-after: avoid;">
+                <h2>Offerta di Finanziamento</h2>
+                <table style="margin-bottom: 20px; border: none;">
+                    <tr>
+                        <td style="font-weight: 600; width: 30%; border: none;">Fornitore:</td>
+                        <td style="border: none;" id="printFornitore">GECO SRL</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; border: none;">Cliente:</td>
+                        <td style="border: none;" id="printCliente">Cliente</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; border: none;">Data:</td>
+                        <td style="border: none;" id="printData">-</td>
+                    </tr>
+                </table>
+                <div style="background: #f5f5f5; padding: 12px; border-radius: 6px; margin-top: 15px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">Descrizione Bene:</div>
+                    <div id="printDescrizione" style="font-size: 12px; line-height: 1.6;">-</div>
+                </div>
+            </div>
+
+            <!-- PIANO AMMORTAMENTO -->
+            <div class="section hidden" id="ammortamentoSection">
+                <h2>📋 Piano di Ammortamento</h2>
+                <div class="amortization-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rata N.</th>
+                                <th>Data</th>
+                                <th>Rata (€)</th>
+                                <th>Interessi (€)</th>
+                                <th>Capitale (€)</th>
+                                <th>Residuo (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ammortamentoTable"></tbody>
+                    </table>
+                </div>
+                <div class="button-group printHidden">
+                    <button class="btn-secondary" onclick="window.print()">🖨️ Stampa / Salva PDF</button>
+                </div>
+            </div>
+
+            <!-- INFO -->
+            <div class="section printHidden">
+                <h2>ℹ️ Informazioni Importanti</h2>
+                <div class="info-box">
+                    <strong>TAN (Tasso Annuale Nominale):</strong> Tasso di interesse applicato al finanziamento
+                </div>
+                <div class="info-box">
+                    <strong>TAEG (Tasso Annuale Effettivo Globale):</strong> Indicatore del costo complessivo del finanziamento, include tutti gli oneri e le spese di incasso
+                </div>
+                <div class="info-box">
+                    <strong>Come stampare/salvare come PDF:</strong> Premi Ctrl+P (Windows) o Cmd+P (Mac), seleziona "Salva come PDF" dal menu delle stampanti, e scarica il documento
+                </div>
+                <div class="info-box">
+                    <strong>Spese di Incasso:</strong> €3,00 fisse per pratica, già incluse nei calcoli
+                </div>
+            </div>
+
+            <div class="footer-note">
+                Calcolatore GECO SRL | Finanziamenti Leasing Operativo | v2.0 | 2026
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DATI TASSI - CAMPIONE
+        // Nota: Sostituire con i dati F73 completi (661 importi)
+        // Vedi: INTEGRAZIONE_DATI.md
+        // ============================================
+        window.TASSI_DATI = {
+            "12": [{importo:2000,tasso:9.104,rata:178.79,taeg:12.78},{importo:5000,tasso:9.15,rata:451.45,taeg:12.42},{importo:10000,tasso:9.20,rata:907.42,taeg:12.45},{importo:15000,tasso:9.18,rata:1361.89,taeg:12.43},{importo:20000,tasso:9.22,rata:1816.45,taeg:12.48},{importo:25000,tasso:9.25,rata:2270.92,taeg:12.50},{importo:30000,tasso:9.23,rata:2725.18,taeg:12.48},{importo:35000,tasso:9.26,rata:3179.85,taeg:12.52}],
+            "18": [{importo:2000,tasso:9.123,rata:122.95,taeg:12.65},{importo:5000,tasso:9.15,rata:307.37,taeg:12.40},{importo:10000,tasso:9.19,rata:614.78,taeg:12.43},{importo:15000,tasso:9.21,rata:922.17,taeg:12.45},{importo:20000,tasso:9.23,rata:1229.56,taeg:12.47},{importo:25000,tasso:9.24,rata:1536.95,taeg:12.48},{importo:30000,tasso:9.25,rata:1844.34,taeg:12.49},{importo:35000,tasso:9.27,rata:2151.73,taeg:12.51}],
+            "24": [{importo:2000,tasso:9.142,rata:93.4,taeg:12.35},{importo:5000,tasso:9.15,rata:233.5,taeg:12.38},{importo:10000,tasso:9.18,rata:467.15,taeg:12.42},{importo:15000,tasso:9.20,rata:700.75,taeg:12.44},{importo:20000,tasso:9.22,rata:934.42,taeg:12.46},{importo:25000,tasso:9.24,rata:1168.08,taeg:12.48},{importo:30000,tasso:9.25,rata:1401.85,taeg:12.49},{importo:35000,tasso:9.27,rata:1635.65,taeg:12.51}],
+            "30": [{importo:2000,tasso:9.286,rata:76.58,taeg:12.54},{importo:5000,tasso:9.29,rata:191.45,taeg:12.56},{importo:10000,tasso:9.31,rata:382.9,taeg:12.58},{importo:15000,tasso:9.32,rata:574.35,taeg:12.59},{importo:20000,tasso:9.34,rata:765.8,taeg:12.61},{importo:25000,tasso:9.35,rata:957.25,taeg:12.62},{importo:30000,tasso:9.36,rata:1148.7,taeg:12.63},{importo:35000,tasso:9.38,rata:1340.15,taeg:12.65}],
+            "36": [{importo:2000,tasso:9.429,rata:65.31,taeg:12.72},{importo:5000,tasso:9.43,rata:163.3,taeg:12.73},{importo:10000,tasso:9.45,rata:326.65,taeg:12.75},{importo:15000,tasso:9.46,rata:489.95,taeg:12.76},{importo:20000,tasso:9.48,rata:653.3,taeg:12.78},{importo:25000,tasso:9.49,rata:816.62,taeg:12.79},{importo:30000,tasso:9.50,rata:979.95,taeg:12.80},{importo:35000,tasso:9.52,rata:1143.3,taeg:12.82}],
+            "42": [{importo:2000,tasso:9.305,rata:56.21,taeg:12.49},{importo:5000,tasso:9.31,rata:140.52,taeg:12.50},{importo:10000,tasso:9.33,rata:281.04,taeg:12.53},{importo:15000,tasso:9.34,rata:421.56,taeg:12.54},{importo:20000,tasso:9.36,rata:562.08,taeg:12.56},{importo:25000,tasso:9.37,rata:702.6,taeg:12.57},{importo:30000,tasso:9.38,rata:843.12,taeg:12.58},{importo:35000,tasso:9.40,rata:983.64,taeg:12.60}],
+            "48": [{importo:2000,tasso:9.241,rata:50.96,taeg:12.52},{importo:5000,tasso:9.25,rata:127.4,taeg:12.54},{importo:10000,tasso:9.27,rata:254.8,taeg:12.57},{importo:15000,tasso:9.28,rata:382.2,taeg:12.59},{importo:20000,tasso:9.30,rata:509.6,taeg:12.61},{importo:25000,tasso:9.31,rata:637.0,taeg:12.62},{importo:30000,tasso:9.32,rata:764.4,taeg:12.63},{importo:35000,tasso:9.34,rata:891.8,taeg:12.65}],
+            "54": [{importo:2000,tasso:9.310,rata:45.27,taeg:12.59},{importo:5000,tasso:9.32,rata:113.17,taeg:12.61},{importo:10000,tasso:9.34,rata:226.34,taeg:12.63},{importo:15000,tasso:9.35,rata:339.51,taeg:12.65},{importo:20000,tasso:9.37,rata:452.68,taeg:12.67},{importo:25000,tasso:9.38,rata:565.85,taeg:12.68},{importo:30000,tasso:9.39,rata:679.02,taeg:12.69},{importo:35000,tasso:9.41,rata:792.19,taeg:12.71}],
+            "60": [{importo:2000,tasso:8.982,rata:42.25,taeg:12.22},{importo:5000,tasso:8.99,rata:105.62,taeg:12.24},{importo:10000,tasso:9.01,rata:211.24,taeg:12.27},{importo:15000,tasso:9.02,rata:316.86,taeg:12.28},{importo:20000,tasso:9.04,rata:422.48,taeg:12.30},{importo:25000,tasso:9.05,rata:528.1,taeg:12.31},{importo:30000,tasso:9.06,rata:633.72,taeg:12.32},{importo:35000,tasso:9.08,rata:739.34,taeg:12.34}],
+            "66": [{importo:2000,tasso:9.195,rata:38.56,taeg:12.41},{importo:5000,tasso:9.20,rata:96.4,taeg:12.43},{importo:10000,tasso:9.22,rata:192.8,taeg:12.46},{importo:15000,tasso:9.23,rata:289.2,taeg:12.47},{importo:20000,tasso:9.25,rata:385.6,taeg:12.49},{importo:25000,tasso:9.26,rata:482.0,taeg:12.50},{importo:30000,tasso:9.27,rata:578.4,taeg:12.51},{importo:35000,tasso:9.29,rata:674.8,taeg:12.53}],
+            "72": [{importo:2000,tasso:9.285,rata:35.82,taeg:12.57},{importo:5000,tasso:9.29,rata:89.55,taeg:12.58},{importo:10000,tasso:9.31,rata:179.1,taeg:12.61},{importo:15000,tasso:9.32,rata:268.65,taeg:12.62},{importo:20000,tasso:9.34,rata:358.2,taeg:12.64},{importo:25000,tasso:9.35,rata:447.75,taeg:12.65},{importo:30000,tasso:9.36,rata:537.3,taeg:12.66},{importo:35000,tasso:9.38,rata:626.85,taeg:12.68}],
+            "78": [{importo:2000,tasso:9.310,rata:33.65,taeg:12.60},{importo:5000,tasso:9.32,rata:84.12,taeg:12.62},{importo:10000,tasso:9.34,rata:168.24,taeg:12.65},{importo:15000,tasso:9.35,rata:252.36,taeg:12.66},{importo:20000,tasso:9.37,rata:336.48,taeg:12.68},{importo:25000,tasso:9.38,rata:420.6,taeg:12.69},{importo:30000,tasso:9.39,rata:504.72,taeg:12.70},{importo:35000,tasso:9.41,rata:588.84,taeg:12.72}],
+            "84": [{importo:2000,tasso:9.316,rata:33.05,taeg:12.46},{importo:5000,tasso:9.32,rata:82.62,taeg:12.47},{importo:10000,tasso:9.34,rata:165.24,taeg:12.50},{importo:15000,tasso:9.35,rata:247.86,taeg:12.51},{importo:20000,tasso:9.37,rata:330.48,taeg:12.53},{importo:25000,tasso:9.38,rata:413.1,taeg:12.54},{importo:30000,tasso:9.39,rata:495.72,taeg:12.55},{importo:35000,tasso:9.41,rata:578.34,taeg:12.57}],
+            "90": [{importo:2000,tasso:9.340,rata:31.35,taeg:12.56},{importo:5000,tasso:9.35,rata:78.37,taeg:12.57},{importo:10000,tasso:9.37,rata:156.74,taeg:12.60},{importo:15000,tasso:9.38,rata:235.11,taeg:12.61},{importo:20000,tasso:9.40,rata:313.48,taeg:12.63},{importo:25000,tasso:9.41,rata:391.85,taeg:12.64},{importo:30000,tasso:9.42,rata:470.22,taeg:12.65},{importo:35000,tasso:9.44,rata:548.59,taeg:12.67}],
+            "96": [{importo:2000,tasso:9.360,rata:30.06,taeg:12.61},{importo:5000,tasso:9.37,rata:75.15,taeg:12.62},{importo:10000,tasso:9.39,rata:150.3,taeg:12.65},{importo:15000,tasso:9.40,rata:225.45,taeg:12.66},{importo:20000,tasso:9.42,rata:300.6,taeg:12.68},{importo:25000,tasso:9.43,rata:375.75,taeg:12.69},{importo:30000,tasso:9.44,rata:450.9,taeg:12.70},{importo:35000,tasso:9.46,rata:526.05,taeg:12.72}],
+            "102": [{importo:2000,tasso:9.375,rata:29.00,taeg:12.64},{importo:5000,tasso:9.39,rata:72.5,taeg:12.66},{importo:10000,tasso:9.41,rata:145.0,taeg:12.69},{importo:15000,tasso:9.42,rata:217.5,taeg:12.70},{importo:20000,tasso:9.44,rata:290.0,taeg:12.72},{importo:25000,tasso:9.45,rata:362.5,taeg:12.73},{importo:30000,tasso:9.46,rata:435.0,taeg:12.74},{importo:35000,tasso:9.48,rata:507.5,taeg:12.76}],
+            "108": [{importo:2000,tasso:9.385,rata:28.10,taeg:12.66},{importo:5000,tasso:9.40,rata:70.25,taeg:12.68},{importo:10000,tasso:9.42,rata:140.5,taeg:12.71},{importo:15000,tasso:9.43,rata:210.75,taeg:12.72},{importo:20000,tasso:9.45,rata:281.0,taeg:12.74},{importo:25000,tasso:9.46,rata:351.25,taeg:12.75},{importo:30000,tasso:9.47,rata:421.5,taeg:12.76},{importo:35000,tasso:9.49,rata:491.75,taeg:12.78}],
+            "114": [{importo:2000,tasso:9.393,rata:27.35,taeg:12.68},{importo:5000,tasso:9.41,rata:68.37,taeg:12.70},{importo:10000,tasso:9.43,rata:136.75,taeg:12.72},{importo:15000,tasso:9.44,rata:205.12,taeg:12.74},{importo:20000,tasso:9.46,rata:273.5,taeg:12.76},{importo:25000,tasso:9.47,rata:341.87,taeg:12.77},{importo:30000,tasso:9.48,rata:410.25,taeg:12.78},{importo:35000,tasso:9.50,rata:478.62,taeg:12.80}],
+            "120": [{importo:2000,tasso:9.180,rata:24.88,taeg:12.38},{importo:5000,tasso:9.19,rata:62.2,taeg:12.39},{importo:10000,tasso:9.21,rata:124.4,taeg:12.42},{importo:15000,tasso:9.22,rata:186.6,taeg:12.43},{importo:20000,tasso:9.24,rata:248.8,taeg:12.45},{importo:25000,tasso:9.25,rata:311.0,taeg:12.46},{importo:30000,tasso:9.26,rata:373.2,taeg:12.47},{importo:35000,tasso:9.28,rata:435.4,taeg:12.49}]
+        };
+
+        // ============================================
+        // FUNZIONI CALCOLO
+        // ============================================
+
+        window.interpolaTasso = function(importo, durata) {
+            const tassi = window.TASSI_DATI[String(durata)];
+            if (!tassi) return null;
+            
+            let lower = null, upper = null;
+            for (let t of tassi) {
+                if (t.importo <= importo) lower = t;
+                if (t.importo >= importo && !upper) upper = t;
+            }
+            
+            if (!lower) return tassi[0];
+            if (!upper) return tassi[tassi.length - 1];
+            if (lower.importo === importo) return lower;
+            if (upper.importo === importo) return upper;
+            
+            const ratio = (importo - lower.importo) / (upper.importo - lower.importo);
+            return {
+                importo: importo,
+                tasso: Math.round((lower.tasso + (upper.tasso - lower.tasso) * ratio) * 100) / 100,
+                rata: Math.round((lower.rata + (upper.rata - lower.rata) * ratio) * 100) / 100,
+                taeg: Math.round((lower.taeg + (upper.taeg - lower.taeg) * ratio) * 100) / 100
+            };
+        };
+
+        window.calcolaFinanziamento = function() {
+            const importo = parseInt(document.getElementById('importo').value);
+            const durata = document.getElementById('durata').value;
+
+            const tassi = window.interpolaTasso(importo, durata);
+            if (!tassi) {
+                alert('Errore: impossibile calcolare. Controlla i dati.');
+                return;
+            }
+
+            document.getElementById('resultImporto').textContent = importo.toLocaleString('it-IT', {maximumFractionDigits: 0});
+            document.getElementById('resultDurata').textContent = durata;
+            document.getElementById('resultRata').textContent = tassi.rata.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('resultTasso').textContent = tassi.tasso.toFixed(2);
+            document.getElementById('resultTAEG').textContent = tassi.taeg.toFixed(2);
+            
+            const totaleInteressi = Math.round((tassi.rata * parseInt(durata) - importo) * 100) / 100;
+            document.getElementById('resultInteressi').textContent = totaleInteressi.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            const totale = importo + totaleInteressi;
+            document.getElementById('resultTotale').textContent = totale.toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+            document.getElementById('resultsSection').classList.remove('hidden');
+            window.ultimoCalcolo = { importo, durata, tassi, totalInteressi: totaleInteressi };
+        };
+
+        window.mostraAmmortamento = function() {
+            if (!window.ultimoCalcolo) return;
+            const { importo, durata, tassi } = window.ultimoCalcolo;
+            const durataNum = parseInt(durata);
+            const tassaMensile = tassi.tasso / 100 / 12;
+            
+            let residuo = importo;
+            let html = '';
+            let dataInizio = new Date();
+
+            for (let i = 1; i <= durataNum; i++) {
+                const interessi = Math.round(residuo * tassaMensile * 100) / 100;
+                const capitale = Math.round((tassi.rata - interessi) * 100) / 100;
+                residuo = Math.round((residuo - capitale) * 100) / 100;
+
+                const data = new Date(dataInizio);
+                data.setMonth(data.getMonth() + i);
+
+                html += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${data.toLocaleDateString('it-IT')}</td>
+                        <td>€${tassi.rata.toLocaleString('it-IT', {minimumFractionDigits: 2})}</td>
+                        <td>€${interessi.toLocaleString('it-IT', {minimumFractionDigits: 2})}</td>
+                        <td>€${capitale.toLocaleString('it-IT', {minimumFractionDigits: 2})}</td>
+                        <td>€${Math.max(0, residuo).toLocaleString('it-IT', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById('ammortamentoTable').innerHTML = html;
+            document.getElementById('ammortamentoSection').classList.remove('hidden');
+        };
+
+        window.stampaOfferta = function() {
+            if (!window.ultimoCalcolo) return;
+
+            const cliente = document.getElementById('cliente').value || 'Cliente';
+            const fornitore = document.getElementById('fornitore').value || 'GECO SRL';
+            const dataOfferta = document.getElementById('dataOfferta').value;
+            const descrizioneBene = document.getElementById('descrizioneBene').value || 'Prodotto/Servizio';
+
+            document.getElementById('printFornitore').textContent = fornitore;
+            document.getElementById('printCliente').textContent = cliente;
+            document.getElementById('printData').textContent = dataOfferta ? new Date(dataOfferta).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+            document.getElementById('printDescrizione').textContent = descrizioneBene;
+            document.getElementById('printHeader').style.display = 'block';
+
+            if (document.getElementById('ammortamentoSection').classList.contains('hidden')) {
+                window.mostraAmmortamento();
+            }
+
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.getElementById('printHeader').style.display = 'none';
+                }, 500);
+            }, 100);
+        };
+
+        // ============================================
+        // INIZIALIZZAZIONE
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dataOfferta').value = today;
+        });
+    </script>
+</body>
+</html>
